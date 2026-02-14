@@ -34,13 +34,13 @@ jobs:
             target_name: linux-x86_64
             ext: ''
 
-          # ── macOS x86_64 ──────────────────────────────────
+          # ── macOS x86_64 ─────────────────────────────────
           - os: macos-latest
             target: x86_64-apple-darwin
             target_name: macos-x86_64
             ext: ''
 
-          # ── macOS Apple Silicon ───────────────────────────
+          # ── macOS Apple Silicon ──────────────────────────
           - os: macos-14
             target: aarch64-apple-darwin
             target_name: macos-aarch64
@@ -153,7 +153,7 @@ jobs:
           path: all-bench-linux-x86_64.tar.gz
           retention-days: 5
 
-  # ── Create GitHub Release & attach all artifacts ──────────
+  # ── Create GitHub Release & attach all artifacts ─────────
   release:
     name: Create Release
     needs: [build, build-bench]
