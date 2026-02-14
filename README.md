@@ -13,6 +13,12 @@
 </p>
 
 
+!\[Primer Benchmarker Screenshot](https://via.placeholder.com/1200x800?text=Primer%27s+benhcmarkker+In+Action)  
+
+\*(https://github.com/primer/.git/whisprer/blob/assets/Screenshot.png)\*
+
+
+
 ## A Bit-Packed Prime Sieve - Rust Port
 
 Ultra-efficient Sieve of Eratosthenes with 64x memory reduction, hardware intrinsics, and C++ performance.
