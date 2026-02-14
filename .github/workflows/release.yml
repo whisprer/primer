@@ -131,7 +131,7 @@ jobs:
       - name: Build benchmark
         run: |
           mkdir -p all_bench/src
-          cp all_bench.rs all_bench/src/main.rs
+          cp main.rs all_bench/src/main.rs
           cp Cargo.toml all_bench/
           cd all_bench
           cargo build --release
@@ -140,11 +140,11 @@ jobs:
         run: |
           mkdir -p dist
           cp all_bench/target/release/all_bench dist/
-          cp all_bench.rs dist/
+          cp main.rs dist/
           cp Cargo.toml dist/
           cd dist
           tar czf ../all-bench-linux-x86_64.tar.gz \
-            all_bench all_bench.rs Cargo.toml
+            all_bench main.rs Cargo.toml
 
       - name: Upload benchmark artifact
         uses: actions/upload-artifact@v4
@@ -184,7 +184,7 @@ jobs:
             primer.rs
             og.rs
             primes.cpp
-            all_bench.rs
+            main.rs
             Cargo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
