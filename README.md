@@ -31,7 +31,9 @@
 </p>
 
 <p align="center">
-  <img src="assets/Screenshot.png" alt="Primer Benchmarker Screenshot" width="900"/>
+  <img src="assets/Screenshot.png" alt="Primer Benchmarker Screenshot" 
+height="250"/
+width="1000"/>
 </p>
 
 # ** PRIMER **
