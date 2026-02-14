@@ -4,7 +4,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/64x-faster-blue" alt="Speed">
   <img src="https://img.shields.io/badge/183x-smaller-green" alt="MemSize">
-  <img src="https://img.shields.io/badge/ideal-for-esp32-yellow" alt="esp32">
+  <img src="https://img.shields.io/badge/esp32-suited-yellow" alt="esp32">
   <img src="https://img.shields.io/badge/created-12hrs-red" alt="Created in 12 hours">
   <a href="https://github.com/whisprer/primer/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green.svg"
