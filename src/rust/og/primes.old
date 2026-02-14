@@ -1,0 +1,162 @@
+/// Bit-packed Sieve of Eratosthenes - Rust port of ultra-compact C++ implementation
+/// 
+/// Optimizations:
+/// - 1 bit per odd number (64x memory reduction vs naive)
+/// - Hardware intrinsics for bit manipulation
+/// - Odd-only sieving (2 is hardcoded)
+/// - Brian Kernighan bit iteration
+
+use std::time::Instant;
+
+/// Generate all primes up to and including `n` using bit-packed sieve
+pub fn sieve_primes(n: u64) -> Vec<u64> {
+    if n < 2 {
+        return vec![];
+    }
+    
+    let h = n / 2; // Only track odd numbers
+    let num_u64s = ((h >> 6) + 1) as usize;
+    
+    // Initialize bit array: all bits set to 1 (assume all odd numbers are prime)
+    // Each u64 holds 64 bits, each bit represents an odd number
+    let mut b = vec![!0u64; num_u64s];
+    
+    // Clear bit 0 (represents number 1, which is not prime)
+    b[0] ^= 1;
+    
+    // Result vector starts with 2 (the only even prime)
+    let mut r = vec![2];
+    
+    let sqrt_n = (n as f64).sqrt() as u64;
+    
+    // Sieving phase: mark composite odd numbers
+    for i in 1..=(sqrt_n / 2) {
+        let word_idx = (i >> 6) as usize;
+        let bit_idx = i & 63;
+        
+        // Check if i represents a prime (bit is set)
+        if (b[word_idx] >> bit_idx) & 1 == 1 {
+            let prime = 2 * i + 1; // Convert index to actual odd number
+            
+            // Mark all multiples of this prime as composite
+            // Start at prime^2 (earlier multiples already marked)
+            let mut j = 2 * i * (i + 1); // This is (prime^2 - 1) / 2
+            
+            while j <= h {
+                let word_idx = (j >> 6) as usize;
+                let bit_idx = j & 63;
+                b[word_idx] &= !(1u64 << bit_idx);
+                j += 2 * i + 1; // Increment by prime
+            }
+        }
+    }
+    
+    // Collection phase: extract all remaining primes using bit tricks
+    for (i, &word) in b.iter().enumerate() {
+        let mut w = word;
+        
+        // Brian Kernighan's algorithm: iterate only over set bits
+        while w != 0 {
+            let tz = w.trailing_zeros(); // Rust equivalent of __builtin_ctzll
+            let bit_pos = (i << 6) + tz as usize;
+            let p = (bit_pos * 2 + 1) as u64;
+            
+            if p <= n {
+                r.push(p);
+            }
+            
+            w &= w - 1; // Clear the lowest set bit
+        }
+    }
+    
+    r
+}
+
+/// Ultra-compact one-liner version (for the aesthetic)
+pub fn sieve_primes_compact(n: u64) -> Vec<u64> {
+    let h = n / 2;
+    let mut b = vec![!0u64; ((h >> 6) + 1) as usize];
+    b[0] ^= 1;
+    let mut r = vec![2];
+    
+    (1..=(n as f64).sqrt() as u64 / 2)
+        .filter(|&i| (b[(i >> 6) as usize] >> (i & 63)) & 1 == 1)
+        .for_each(|i| {
+            let mut j = 2 * i * (i + 1);
+            while j <= h {
+                b[(j >> 6) as usize] &= !(1u64 << (j & 63));
+                j += 2 * i + 1;
+            }
+        });
+    
+    b.iter().enumerate().for_each(|(i, &word)| {
+        let mut w = word;
+        while w != 0 {
+            let p = (((i << 6) + w.trailing_zeros() as usize) * 2 + 1) as u64;
+            if p <= n { r.push(p); }
+            w &= w - 1;
+        }
+    });
+    
+    r
+}
+
+fn main() {
+    let n = 500_000;
+    
+    println!("🦀 Bit-Packed Sieve of Eratosthenes 🦀\n");
+    
+    // Benchmark the optimized version
+    let start = Instant::now();
+    let primes = sieve_primes(n);
+    let elapsed = start.elapsed();
+    
+    println!("Generated {} primes up to {}", primes.len(), n);
+    println!("Time: {:?}", elapsed);
+    println!("Memory: {} bytes (bit-packed)", 
+             (n / 2 / 64 + 1) * 8);
+    
+    // Show first and last few primes
+    println!("\nFirst 10 primes: {:?}", &primes[..10]);
+    println!("Last 10 primes: {:?}", &primes[primes.len() - 10..]);
+    
+    // Verify known values
+    assert_eq!(primes.len(), 41_538); // π(500,000) = 41,538
+    assert_eq!(primes[9], 29);        // 10th prime
+    assert_eq!(primes[10_000], 104_729); // 10,001st prime
+    
+    println!("\n✓ All assertions passed!");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_small_primes() {
+        assert_eq!(sieve_primes(10), vec![2, 3, 5, 7]);
+        assert_eq!(sieve_primes(20), vec![2, 3, 5, 7, 11, 13, 17, 19]);
+    }
+    
+    #[test]
+    fn test_known_counts() {
+        assert_eq!(sieve_primes(100).len(), 25);      // π(100) = 25
+        assert_eq!(sieve_primes(1_000).len(), 168);   // π(1,000) = 168
+        assert_eq!(sieve_primes(10_000).len(), 1_229); // π(10,000) = 1,229
+    }
+    
+    #[test]
+    fn test_edge_cases() {
+        assert_eq!(sieve_primes(0), vec![]);
+        assert_eq!(sieve_primes(1), vec![]);
+        assert_eq!(sieve_primes(2), vec![2]);
+        assert_eq!(sieve_primes(3), vec![2, 3]);
+    }
+    
+    #[test]
+    fn test_compact_matches_standard() {
+        for n in [10, 100, 1_000, 10_000] {
+            assert_eq!(sieve_primes(n), sieve_primes_compact(n));
+        }
+    }
+}

@@ -1,0 +1,29 @@
+# Compiled binaries (single-file rustc builds)
+og/
+og-bench/
+primer-[seg]-bench/
+
+# Compiler pre-binary artifacts
+*.pdb
+
+# Cargo build artifacts
+target/
+Cargo.lock
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Profiling / benchmarking artifacts
+perf.data
+perf.data.old
+flamegraph.svg
+cachegrind.out.*
+callgrind.out.*
