@@ -1,0 +1,190 @@
+name: Build Release Binaries
+
+on:
+  # Trigger on version tag push
+  push:
+    tags:
+      - 'v*'
+
+  # Manual trigger from Actions tab
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.2.0)'
+        required: false
+        default: 'manual'
+
+permissions:
+  contents: write
+
+env:
+  RUSTFLAGS: '-C target-cpu=native'
+
+jobs:
+  build:
+    name: ${{ matrix.target_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Linux x86_64 ──────────────────────────────────
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            target_name: linux-x86_64
+            ext: ''
+
+          # ── macOS x86_64 ──────────────────────────────────
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            target_name: macos-x86_64
+            ext: ''
+
+          # ── macOS Apple Silicon ───────────────────────────
+          - os: macos-14
+            target: aarch64-apple-darwin
+            target_name: macos-aarch64
+            ext: ''
+
+          # ── Windows x86_64 ───────────────────────────────
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            target_name: windows-x86_64
+            ext: '.exe'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Create output directory
+        shell: bash
+        run: mkdir -p dist
+
+      # ── Build standalone binaries (no Cargo needed) ───────
+      - name: Build seg (segmented sieve)
+        shell: bash
+        run: |
+          rustc -C opt-level=3 -C target-cpu=native \
+                --target ${{ matrix.target }} \
+                seg.rs -o dist/seg${{ matrix.ext }}
+
+      - name: Build primes (flat sieve)
+        shell: bash
+        run: |
+          rustc -C opt-level=3 -C target-cpu=native \
+                --target ${{ matrix.target }} \
+                primes.rs -o dist/primes${{ matrix.ext }}
+
+      # ── Run tests (native target only) ────────────────────
+      - name: Test seg
+        shell: bash
+        run: |
+          rustc --test seg.rs -o test_seg${{ matrix.ext }}
+          ./test_seg${{ matrix.ext }}
+
+      - name: Test primes
+        shell: bash
+        run: |
+          rustc --test primes.rs -o test_primes${{ matrix.ext }}
+          ./test_primes${{ matrix.ext }}
+
+      # ── Smoke test: run the binaries ──────────────────────
+      - name: Smoke test seg
+        shell: bash
+        run: ./dist/seg${{ matrix.ext }}
+
+      - name: Smoke test primes
+        shell: bash
+        run: ./dist/primes${{ matrix.ext }}
+
+      # ── Package ───────────────────────────────────────────
+      - name: Package binaries
+        shell: bash
+        run: |
+          cd dist
+          tar czf ../bit-packed-sieve-${{ matrix.target_name }}.tar.gz \
+            seg${{ matrix.ext }} primes${{ matrix.ext }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bit-packed-sieve-${{ matrix.target_name }}
+          path: bit-packed-sieve-${{ matrix.target_name }}.tar.gz
+          retention-days: 5
+
+  # ── Build benchmark harness (Linux only, needs Cargo) ─────
+  build-bench:
+    name: benchmark-harness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build benchmark
+        run: |
+          mkdir -p bench_project/src
+          cp prime_bench.rs bench_project/src/main.rs
+          cp Cargo.toml bench_project/
+          cd bench_project
+          cargo build --release
+
+      - name: Package benchmark
+        run: |
+          mkdir -p dist
+          cp bench_project/target/release/prime_bench dist/
+          cp prime_bench.rs dist/
+          cp Cargo.toml dist/
+          cd dist
+          tar czf ../prime-bench-linux-x86_64.tar.gz \
+            prime_bench prime_bench.rs Cargo.toml
+
+      - name: Upload benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prime-bench-linux-x86_64
+          path: prime-bench-linux-x86_64.tar.gz
+          retention-days: 5
+
+  # ── Create GitHub Release & attach all artifacts ──────────
+  release:
+    name: Create Release
+    needs: [build, build-bench]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES_v0.2.0.md
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/**/*.tar.gz
+            seg.rs
+            primes.rs
+            primes.cpp
+            prime_bench.rs
+            Cargo.toml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
