@@ -84,7 +84,7 @@ jobs:
       - name: Test primer
         shell: bash
         run: |
-          rustc --test primer.rs -o test_priemr${{ matrix.ext }}
+          rustc --test primer.rs -o test_primer${{ matrix.ext }}
           ./test_primer${{ matrix.ext }}
 
       - name: Test og
@@ -144,7 +144,7 @@ jobs:
           cp Cargo.toml dist/
           cd dist
           tar czf ../all-bench-linux-x86_64.tar.gz \
-            all_bench prime_bench.rs Cargo.toml
+            all_bench all_bench.rs Cargo.toml
 
       - name: Upload benchmark artifact
         uses: actions/upload-artifact@v4
@@ -156,7 +156,7 @@ jobs:
   # ── Create GitHub Release & attach all artifacts ──────────
   release:
     name: Create Release
-    needs: [build, build-bench
+    needs: [build, build-bench]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
 
@@ -181,7 +181,7 @@ jobs:
           prerelease: false
           files: |
             artifacts/**/*.tar.gz
-            pimer.rs
+            primer.rs
             og.rs
             primes.cpp
             all_bench.rs
