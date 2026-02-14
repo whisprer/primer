@@ -66,41 +66,41 @@ jobs:
         run: mkdir -p dist
 
       # ── Build standalone binaries (no Cargo needed) ───────
-      - name: Build seg (segmented sieve)
+      - name: Build primer (primer)
         shell: bash
         run: |
           rustc -C opt-level=3 -C target-cpu=native \
                 --target ${{ matrix.target }} \
-                seg.rs -o dist/seg${{ matrix.ext }}
+                primer.rs -o dist/primer${{ matrix.ext }}
 
       - name: Build primes (flat sieve)
         shell: bash
         run: |
           rustc -C opt-level=3 -C target-cpu=native \
                 --target ${{ matrix.target }} \
-                primes.rs -o dist/primes${{ matrix.ext }}
+                og.rs -o dist/og${{ matrix.ext }}
 
       # ── Run tests (native target only) ────────────────────
-      - name: Test seg
+      - name: Test primer
         shell: bash
         run: |
-          rustc --test seg.rs -o test_seg${{ matrix.ext }}
-          ./test_seg${{ matrix.ext }}
+          rustc --test primer.rs -o test_priemr${{ matrix.ext }}
+          ./test_primer${{ matrix.ext }}
 
-      - name: Test primes
+      - name: Test og
         shell: bash
         run: |
-          rustc --test primes.rs -o test_primes${{ matrix.ext }}
-          ./test_primes${{ matrix.ext }}
+          rustc --test og.rs -o test_og${{ matrix.ext }}
+          ./test_og${{ matrix.ext }}
 
       # ── Smoke test: run the binaries ──────────────────────
-      - name: Smoke test seg
+      - name: Smoke test primer
         shell: bash
-        run: ./dist/seg${{ matrix.ext }}
+        run: ./dist/primer${{ matrix.ext }}
 
-      - name: Smoke test primes
+      - name: Smoke test og
         shell: bash
-        run: ./dist/primes${{ matrix.ext }}
+        run: ./dist/og${{ matrix.ext }}
 
       # ── Package ───────────────────────────────────────────
       - name: Package binaries
@@ -108,7 +108,7 @@ jobs:
         run: |
           cd dist
           tar czf ../bit-packed-sieve-${{ matrix.target_name }}.tar.gz \
-            seg${{ matrix.ext }} primes${{ matrix.ext }}
+            primer${{ matrix.ext }} og${{ matrix.ext }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -130,33 +130,33 @@ jobs:
 
       - name: Build benchmark
         run: |
-          mkdir -p bench_project/src
-          cp prime_bench.rs bench_project/src/main.rs
-          cp Cargo.toml bench_project/
-          cd bench_project
+          mkdir -p all_bench/src
+          cp all_bench.rs all_bench/src/main.rs
+          cp Cargo.toml all_bench/
+          cd all_bench
           cargo build --release
 
       - name: Package benchmark
         run: |
           mkdir -p dist
-          cp bench_project/target/release/prime_bench dist/
-          cp prime_bench.rs dist/
+          cp all_bench/target/release/all_bench dist/
+          cp all_bench.rs dist/
           cp Cargo.toml dist/
           cd dist
-          tar czf ../prime-bench-linux-x86_64.tar.gz \
-            prime_bench prime_bench.rs Cargo.toml
+          tar czf ../all-bench-linux-x86_64.tar.gz \
+            all_bench prime_bench.rs Cargo.toml
 
       - name: Upload benchmark artifact
         uses: actions/upload-artifact@v4
         with:
-          name: prime-bench-linux-x86_64
-          path: prime-bench-linux-x86_64.tar.gz
+          name: all-bench-linux-x86_64
+          path: all-bench-linux-x86_64.tar.gz
           retention-days: 5
 
   # ── Create GitHub Release & attach all artifacts ──────────
   release:
     name: Create Release
-    needs: [build, build-bench]
+    needs: [build, build-bench
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
 
@@ -181,10 +181,10 @@ jobs:
           prerelease: false
           files: |
             artifacts/**/*.tar.gz
-            seg.rs
-            primes.rs
+            pimer.rs
+            og.rs
             primes.cpp
-            prime_bench.rs
+            all_bench.rs
             Cargo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
