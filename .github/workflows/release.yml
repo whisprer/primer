@@ -134,8 +134,8 @@ jobs:
       - name: Package benchmark
         run: |
           mkdir -p dist
-          cp src/rust/all-bench/target/release/main dist/ || \
-          cp src/rust/all-bench/target/release/main dist/all-bench
+          cp src/rust/all-bench/target/release/src dist/ || \
+          cp src/rust/all-bench/target/release/src dist/all-bench
           cp src/rust/all-bench/src/main.rs dist/
           cp src/rust/all-bench/cargo.toml dist/Cargo.toml
           cd dist
