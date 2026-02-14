@@ -30,11 +30,6 @@
   </a>
 </p>
 
-<p align="center">
-  <img src="assets/Screenshot.png" alt="Primer Benchmarker Screenshot" 
-width="900"/>
-</p>
-
 # ** PRIMER **
 
 
@@ -94,6 +89,12 @@ Last 10 primes: [499883, 499897, 499903, 499927, 499943, 499957, 499969, 499973,
 | **This (bit-packed)** | 41,538 primes | **4 KB** | **~2ms** | Bulk generation |
 | Rust `primes` crate | 41,538 primes | ~500 KB | ~15ms | Lazy iteration |
 | Rust `primal` crate | 41,538 primes | ~50 KB | ~3ms | Cache-friendly sieve |
+
+
+<p align="center">
+  <img src="assets/Screenshot.png" alt="Primer Benchmarker Screenshot" 
+width="900"/>
+</p>
 
 
 ## Usage Examples
