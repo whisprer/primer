@@ -135,7 +135,7 @@ jobs:
         run: |
           mkdir -p dist
           cp src/rust/all-bench/target/release/all-bench dist/ || \
-          cp src/rust/all-bench/target/release/all_bench dist/all-bench
+          cp src/rust/all-bench/target/release/all-bench dist/all-bench
           cp src/rust/all-bench/src/main.rs dist/
           cp src/rust/all-bench/cargo.toml dist/Cargo.toml
           cd dist
