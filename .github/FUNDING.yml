@@ -1,0 +1,29 @@
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│   ██████╗ ██████╗ ██╗███╗   ███╗███████╗██████╗                              │
+│   ██╔══██╗██╔══██╗██║████╗ ████║██╔════╝██╔══██╗                             │
+│   ██████╔╝██████╔╝██║██╔████╔██║█████╗  ██████╔╝                             │
+│   ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║██╔══╝  ██╔══██╗                             │
+│   ██║     ██║  ██║██║██║ ╚═╝ ██║███████╗██║  ██║                             │
+│   ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝                             │
+│                                                                              │
+│   Rust prime-number bench crate • fast • reproducible • no nonsense          │
+│                                                                              │
+│   ┌───────────────────────────── SUPPORT PRIMER ───────────────────────────┐ │
+│   │                                                                        │ │
+│   │      Sponsor the project:                                              │ │
+│   │      GitHub Sponsors : https://github.com/sponsors/<YOUR_HANDLE>       │ │
+│   │                                                                        │ │
+│   │      Buy me a coffee (optional):                                       │ │
+│   │      https://buymeacoffee.com/whisprer                                 │ │
+│   │                                                                        │ │
+│   │      How your support helps:                                           │ │
+│   │      • benchmarking rigs & CI minutes                                  │ │
+│   │      • new algorithms / proofs / writeups                              │ │
+│   │      • docs, examples, and careful review                              │ │
+│   │                                                                        │ │
+│   │     Not into money? Star the repo + share PRIMER with a Rust friend.   │ │
+│   │                                                                        │ │
+│   └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
