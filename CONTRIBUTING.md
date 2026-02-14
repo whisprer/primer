@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in improving **bit-packed-sieve**!
+Thanks for your interest in improving **PRIMER** the bit-packed-sieve!
 
 
 ## Code style

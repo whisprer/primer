@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 The format is inspired by "Keep a Changelog", and this project follows semantic versioning where practical.
+## [not numbered] 2026-02-14
+### Changed
+- Name finalized to `Primer`.
 
 ## [0.2.0] - 2026-02-14
 ### Added

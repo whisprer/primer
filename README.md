@@ -1,20 +1,24 @@
-# 🦀 Bit-Packed Prime Sieve - Rust Port
+# PRIMER - AN IMPROVED RUST PRIMES CRATE
+
+
+## A Bit-Packed Prime Sieve - Rust Port
 
 Ultra-efficient Sieve of Eratosthenes with 64x memory reduction, hardware intrinsics, and C++ performance.
 
-## 🚀 Quick Start
+
+## Quick Start
 
 ```bash
 # Compile with maximum optimizations
-rustc -C opt-level=3 -C target-cpu=native optimized_sieve.rs
+rustc -C opt-level=3 -C target-cpu=native primer.rs
 
 # Run
-./optimized_sieve
+./primer
 ```
 
 **Expected output:**
 ```
-🦀 Bit-Packed Sieve of Eratosthenes 🦀
+Bit-Packed Sieve of Eratosthenes
 
 Generated 41538 primes up to 500000
 Time: ~1-3ms
@@ -26,16 +30,18 @@ Last 10 primes: [499883, 499897, 499903, 499927, 499943, 499957, 499969, 499973,
 ✓ All assertions passed!
 ```
 
-## 📦 What's Included
+
+## What's Included
 
 | File | Description |
 |------|-------------|
-| `optimized_sieve.rs` | Production-ready Rust implementation |
+| `primer.rs` | Production-ready Rust implementation |
 | `PERFORMANCE_ANALYSIS.md` | Benchmarks, scaling, use cases |
 | `SIDE_BY_SIDE.md` | C++ → Rust translation guide |
 | `BORROW_CHECKER_FIX.md` | How we fixed the compile errors |
 
-## 🔥 Key Features
+
+## Key Features
 
 - **64x Memory Reduction**: 1 bit per odd number vs 8+ bytes naive
 - **Hardware Intrinsics**: `trailing_zeros()` compiles to `tzcnt` instruction
@@ -43,7 +49,8 @@ Last 10 primes: [499883, 499897, 499903, 499927, 499943, 499957, 499969, 499973,
 - **Odd-Only Sieving**: Hardcode 2, process only odd candidates
 - **Cache Friendly**: Sequential bit scanning
 
-## 📊 Performance vs Alternatives
+
+## Performance vs Alternatives
 
 | Method | n=500k | Memory | Speed | Use Case |
 |--------|--------|--------|-------|----------|
@@ -51,11 +58,12 @@ Last 10 primes: [499883, 499897, 499903, 499927, 499943, 499957, 499969, 499973,
 | Rust `primes` crate | 41,538 primes | ~500 KB | ~15ms | Lazy iteration |
 | Rust `primal` crate | 41,538 primes | ~50 KB | ~3ms | Cache-friendly sieve |
 
-## 🎯 Usage Examples
+
+## Usage Examples
 
 ### Basic Usage
 ```rust
-use optimized_sieve::sieve_primes;
+use primer::sieve_primes;
 
 fn main() {
     let primes = sieve_primes(1000);
@@ -63,7 +71,7 @@ fn main() {
 }
 ```
 
-### Lighthouse Network Integration
+### Distributed Network Integration
 ```rust
 // Generate prime table at boot for distributed node IDs
 const PRIME_LIMIT: u64 = 10_000;
@@ -93,7 +101,7 @@ const ESP32_PRIMES: &[u64] = &{
 };
 ```
 
-## ⚡ Optimizations Explained
+## Optimizations Explained
 
 ### 1. Bit Packing
 ```rust
@@ -135,12 +143,13 @@ while w != 0 {
 // Iterates ONLY over set bits, not all 64!
 ```
 
-## 🧪 Testing
+
+## Testing
 
 ```bash
 # Run built-in tests
-rustc --test optimized_sieve.rs -o test_sieve
-./test_sieve
+rustc --test primer.rs -o test_primer
+./test_primer
 ```
 
 **Test coverage:**
@@ -149,7 +158,8 @@ rustc --test optimized_sieve.rs -o test_sieve
 - Edge cases (n=0, 1, 2, 3)
 - Compact vs standard implementation equality
 
-## 📈 Scaling Behavior
+
+## Scaling Behavior
 
 | n | Primes | Memory | Time (est) |
 |---|--------|--------|------------|
@@ -160,7 +170,8 @@ rustc --test optimized_sieve.rs -o test_sieve
 | 10M | 664,579 | 80 KB | ~15 ms |
 | 100M | 5.76M | 800 KB | ~200 ms |
 
-## 🔧 Troubleshooting
+
+## Troubleshooting
 
 ### Compile Error: "cannot borrow `b` as mutable..."
 This was fixed in the updated version. The issue was trying to use iterators while mutating the same array. See `BORROW_CHECKER_FIX.md` for details.
@@ -171,28 +182,28 @@ Also fixed. We removed the intermediate variable that wasn't being used.
 ### Slow Performance
 Make sure you're compiling with optimizations:
 ```bash
-rustc -C opt-level=3 -C target-cpu=native optimized_sieve.rs
+rustc -C opt-level=3 -C target-cpu=native primer.rs
 ```
 
 Without `-C opt-level=3`, performance will be 10-100x slower!
 
-## 🎓 Learn More
+## Learn More
 
 - **PERFORMANCE_ANALYSIS.md**: Deep dive into benchmarks and use cases
 - **SIDE_BY_SIDE.md**: Line-by-line C++ → Rust translation
 - **BORROW_CHECKER_FIX.md**: Understanding and fixing Rust borrow errors
 
-## 🤝 Integration Patterns
+## Integration Patterns
 
 ### As a Library
 ```rust
 // In your Cargo.toml
 [dependencies]
-# Copy optimized_sieve.rs into your project as a module
+# Copy primer.rs into your project as a module
 
 // In your code
-mod optimized_sieve;
-use optimized_sieve::sieve_primes;
+mod primer;
+use primer::sieve_primes;
 ```
 
 ### Precomputed Table
@@ -229,15 +240,18 @@ impl Iterator for PrimeIter {
 }
 ```
 
-## 📝 License
+## License
 
-Same as original C++ implementation - use freely!
+Same as original C++ implementation - Hybrid MIT & CC0 - use Freely!
 
-## 💬 Credits
 
-- Original C++ bit-packed implementation
-- Ported to Rust with borrow checker compliance
-- Optimized for lighthouse distributed timing networks
+## Credits
+
+- Original C++ bit-packed implementation whisprer
+- Ported to Rust with borrow checker compliance whisprer & ClaudeOpus4.6
+- Optimized for distributed timing networks
+- Inspired by the insane single midnedness of RTC.
+- RIP CLaude/Gemini/ChatGPT. Long Live ClaudeOpus4.6/Gemini3.0Pro/ChatGPT5.2!
 
 ---
 
@@ -248,11 +262,5 @@ Same as original C++ implementation - use freely!
 - ESP32/embedded prime generation
 - Any scenario where memory efficiency matters
 
-**Confidence Scores:**
-- Correctness: 1.0 ✓
-- Performance: 0.98 ✓
-- Memory efficiency: 1.0 ✓
-- Rust idiomaticity: 0.96 ✓
-- Production ready: 0.97 ✓
 
-🦀 **Compile it. Run it. Ship it.** ⚡
+**Compile it. Run it. Ship it.**

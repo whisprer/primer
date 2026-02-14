@@ -21,6 +21,9 @@ Cargo.lock
 .DS_Store
 Thumbs.db
 
+# Convos not for publish
+BORROW_CHECKER_CONVO.md
+
 # Profiling / benchmarking artifacts
 perf.data
 perf.data.old
