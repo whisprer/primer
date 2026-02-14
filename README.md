@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/whisprer/primer">
-    <img src="assets/social_icon.png" alt="PRIMER" width="100%"/>
+    <img src="assets/social_icon.png" alt="PRIMER" height="250"/ width="100%"/>
   </a>
 </p>
 
@@ -32,8 +32,7 @@
 
 <p align="center">
   <img src="assets/Screenshot.png" alt="Primer Benchmarker Screenshot" 
-height="250"/
-width="1000"/>
+width="900"/>
 </p>
 
 # ** PRIMER **
