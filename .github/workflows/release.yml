@@ -127,20 +127,44 @@ jobs:
 
       # Source: src/rust/all-bench/cargo.toml + src/rust/all-bench/src/main.rs
       - name: Build benchmark
-        run: |
-          cd src/rust/all-bench
-          cargo build --release
+        shell: bash
+        working-directory: src/rust/all-bench
+        run: cargo build --release
 
       - name: Package benchmark
+        shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p dist
-          cp src/rust/all-bench/target/release/src dist/ || \
-          cp src/rust/all-bench/target/release/src dist/all-bench
-          cp src/rust/all-bench/src/main.rs dist/
-          cp src/rust/all-bench/cargo.toml dist/Cargo.toml
-          cd dist
-          tar czf ../all-bench-linux-x86_64.tar.gz \
-            all-bench main.rs Cargo.toml
+
+          # Cargo puts the built binary directly under target/release/<bin-name>
+          # (there is no target/release/src directory).
+          BIN=$(find src/rust/all-bench/target/release -maxdepth 1 -type f -executable \
+                  ! -name '*.d' ! -name '*.rlib' ! -name '*.a' ! -name '*.so' \
+                  ! -name '*.dylib' ! -name '*.dll' ! -name '*.pdb' \
+                  | head -n 1)
+          if [ -z "${BIN:-}" ]; then
+            echo "ERROR: could not locate benchmark binary under src/rust/all-bench/target/release" >&2
+            ls -la src/rust/all-bench/target/release || true
+            exit 1
+          fi
+
+          cp -v "$BIN" dist/all-bench
+          cp -v src/rust/all-bench/src/main.rs dist/
+
+          # Handle Windows-authored repos where Cargo.toml may be cased oddly.
+          if [ -f src/rust/all-bench/Cargo.toml ]; then
+            cp -v src/rust/all-bench/Cargo.toml dist/Cargo.toml
+          elif [ -f src/rust/all-bench/cargo.toml ]; then
+            cp -v src/rust/all-bench/cargo.toml dist/Cargo.toml
+          else
+            echo "ERROR: Cargo.toml not found in src/rust/all-bench" >&2
+            ls -la src/rust/all-bench || true
+            exit 1
+          fi
+
+          (cd dist && tar czf ../all-bench-linux-x86_64.tar.gz all-bench main.rs Cargo.toml)
 
       - name: Upload benchmark artifact
         uses: actions/upload-artifact@v4
@@ -181,6 +205,6 @@ jobs:
             src/rust/og/primes.rs
             src/cpp-og/primes.cpp
             src/rust/all-bench/src/main.rs
-            src/rust/all-bench/cargo.toml
+            src/rust/all-bench/[Cc]argo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
