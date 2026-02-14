@@ -1,6 +1,18 @@
 # PRIMER - AN IMPROVED RUST PRIMES CRATE
 
 
+<p align="center">
+  <img src="https://img.shields.io/badge/phonemes-13-blue" alt="Phonemes">
+  <img src="https://img.shields.io/badge/roots-48-green" alt="Roots">
+  <img src="https://img.shields.io/badge/scripts-2-orange" alt="Scripts">
+  <img src="https://img.shields.io/badge/created-12hrs-red" alt="Created in 5 hours">
+  <a href="https://github.com/whisprer/primer/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg"
+    <img src="https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg" alt="License">
+  </a>
+</p>
+
+
 ## A Bit-Packed Prime Sieve - Rust Port
 
 Ultra-efficient Sieve of Eratosthenes with 64x memory reduction, hardware intrinsics, and C++ performance.
