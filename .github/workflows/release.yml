@@ -1,12 +1,10 @@
 name: Build Release Binaries
 
 on:
-  # Trigger on version tag push
   push:
     tags:
       - 'v*'
 
-  # Manual trigger from Actions tab
   workflow_dispatch:
     inputs:
       tag:
@@ -28,25 +26,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ── Linux x86_64 ─────────────────────────────────
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             target_name: linux-x86_64
             ext: ''
 
-          # ── macOS x86_64 ─────────────────────────────────
           - os: macos-latest
             target: x86_64-apple-darwin
             target_name: macos-x86_64
             ext: ''
 
-          # ── macOS Apple Silicon ──────────────────────────
           - os: macos-14
             target: aarch64-apple-darwin
             target_name: macos-aarch64
             ext: ''
 
-          # ── Windows x86_64 ───────────────────────────────
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             target_name: windows-x86_64
@@ -65,35 +59,38 @@ jobs:
         shell: bash
         run: mkdir -p dist
 
-      # ── Build standalone binaries (no Cargo needed) ───────
-      - name: Build primer (primer)
+      # ── Build primer (segmented sieve) ────────────────────
+      # Source: primer-crate/primer.rs
+      - name: Build primer
         shell: bash
         run: |
           rustc -C opt-level=3 -C target-cpu=native \
                 --target ${{ matrix.target }} \
-                primer.rs -o dist/primer${{ matrix.ext }}
+                primer-crate/primer.rs -o dist/primer${{ matrix.ext }}
 
-      - name: Build primes (flat sieve)
+      # ── Build og (flat sieve) ─────────────────────────────
+      # Source: src/rust/og/primes.rs
+      - name: Build og
         shell: bash
         run: |
           rustc -C opt-level=3 -C target-cpu=native \
                 --target ${{ matrix.target }} \
-                og.rs -o dist/og${{ matrix.ext }}
+                src/rust/og/primes.rs -o dist/og${{ matrix.ext }}
 
-      # ── Run tests (native target only) ────────────────────
+      # ── Test (native only) ────────────────────────────────
       - name: Test primer
         shell: bash
         run: |
-          rustc --test primer.rs -o test_primer${{ matrix.ext }}
+          rustc --test primer-crate/primer.rs -o test_primer${{ matrix.ext }}
           ./test_primer${{ matrix.ext }}
 
       - name: Test og
         shell: bash
         run: |
-          rustc --test og.rs -o test_og${{ matrix.ext }}
+          rustc --test src/rust/og/primes.rs -o test_og${{ matrix.ext }}
           ./test_og${{ matrix.ext }}
 
-      # ── Smoke test: run the binaries ──────────────────────
+      # ── Smoke test ────────────────────────────────────────
       - name: Smoke test primer
         shell: bash
         run: ./dist/primer${{ matrix.ext }}
@@ -128,23 +125,22 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      # Source: src/rust/all-bench/cargo.toml + src/rust/all-bench/src/main.rs
       - name: Build benchmark
         run: |
-          mkdir -p all_bench/src
-          cp main.rs all_bench/src/main.rs
-          cp Cargo.toml all_bench/
-          cd all_bench
+          cd src/rust/all-bench
           cargo build --release
 
       - name: Package benchmark
         run: |
           mkdir -p dist
-          cp all_bench/target/release/all_bench dist/
-          cp main.rs dist/
-          cp Cargo.toml dist/
+          cp src/rust/all-bench/target/release/all-bench dist/ || \
+          cp src/rust/all-bench/target/release/all_bench dist/all-bench
+          cp src/rust/all-bench/src/main.rs dist/
+          cp src/rust/all-bench/cargo.toml dist/Cargo.toml
           cd dist
           tar czf ../all-bench-linux-x86_64.tar.gz \
-            all_bench main.rs Cargo.toml
+            all-bench main.rs Cargo.toml
 
       - name: Upload benchmark artifact
         uses: actions/upload-artifact@v4
@@ -153,7 +149,7 @@ jobs:
           path: all-bench-linux-x86_64.tar.gz
           retention-days: 5
 
-  # ── Create GitHub Release & attach all artifacts ─────────
+  # ── Create GitHub Release & attach all artifacts ──────────
   release:
     name: Create Release
     needs: [build, build-bench]
@@ -176,15 +172,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ github.ref_name }}
-          body_path: RELEASE_NOTES_v0.2.0.md
+          generate_release_notes: true
           draft: false
           prerelease: false
           files: |
             artifacts/**/*.tar.gz
-            primer.rs
-            og.rs
-            primes.cpp
-            main.rs
-            Cargo.toml
+            primer-crate/primer.rs
+            src/rust/og/primes.rs
+            src/cpp-og/primes.cpp
+            src/rust/all-bench/src/main.rs
+            src/rust/all-bench/cargo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
