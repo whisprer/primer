@@ -1,0 +1,37 @@
+[package]
+name = "primer-sieve"
+version = "0.3.0"
+edition = "2021"
+rust-version = "1.70"
+description = "A cache-aware, bit-packed segmented Sieve of Eratosthenes for Rust"
+homepage = "https://primercrate.rs/"
+repository = "https://github.com/whisprer/primer"
+documentation = "https://docs.rs/primer-sieve"
+readme = "README.md"
+license-file = "LICENSE.md"
+keywords = ["prime", "sieve", "eratosthenes", "segmented", "bit-packed"]
+categories = ["algorithms", "mathematics"]
+publish = ["crates-io"]
+include = [
+    "/Cargo.toml",
+    "/README.md",
+    "/CHANGELOG.md",
+    "/LICENSE.md",
+    "/src/lib.rs",
+    "/src/bin/primer.rs",
+    "/examples/basic.rs",
+    "/tests/public_api.rs",
+]
+
+[lib]
+name = "primer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "primer"
+path = "src/bin/primer.rs"
+
+[dependencies]
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
