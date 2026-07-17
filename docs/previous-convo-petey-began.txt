@@ -1,0 +1,406 @@
+Worked for 1m 52s
+
+Fren, primercrate.rs is a bloody magnificent domain. It sounds official, explains the product category, and performs a pleasing little Rust-domain pun without needing a committee to explain it.
+
+But I’m going to challenge the immediate instinct:
+
+Do not build a conventional “Here is my crate; here are its features” website.
+
+Build a public performance laboratory that happens to promote Primer.
+
+Rust developers generally do not respond strongly to advertising. They respond to:
+
+reproducible numbers;
+intriguing implementation decisions;
+code they can run immediately;
+transparent limitations;
+an invitation to prove you wrong.
+
+That gives Primer a potentially excellent launch angle.
+
+First: one urgent problem
+
+Right now, primercrate.rs is serving an unrelated Armenian news site. Do not share the domain yet. This could be a DNS configuration problem, stale hosting configuration, registrar parking arrangement, or incorrect virtual-host setup; it does not necessarily mean the domain has been compromised. But it needs resolving before anything promotional happens.
+
+Second: tighten the claim before making noise
+
+Primer’s compelling advantage is presently clearer than its published wording.
+
+Your repository currently contains several different comparisons:
+
+The README describes approximately 4 KB versus 50 KB for primal at 500,000 and approximately 2 ms versus 3 ms.
+The v0.2.0 release reports 443 µs versus 170 µs at 500,000, and 137 ms versus 61.7 ms at 100 million.
+That release also reports 32 KB versus 6 MB of sieve working memory at 50 million—a genuinely spectacular 187× working-memory advantage—but only 24.8 MB versus 38 MB total memory once the returned prime vectors are included.
+
+So I would not launch with:
+
+“Same speed as primal, using 64× less memory.”
+
+It is too broad, and the current results do not consistently support it.
+
+Launch with something both stronger and harder to attack:
+
+A cache-aware segmented prime sieve with a 32 KiB reusable working set, zero dependencies, and competitive single-threaded throughput.
+
+Or, more punchily:
+
+Primer generates primes without making memory everybody else’s problem.
+
+The primary benchmark headline can be:
+
+187× smaller sieve working memory than primal at n = 50,000,000 in our reference benchmark.
+
+Then immediately show:
+
+the machine;
+CPU;
+compiler version;
+target flags;
+crate versions;
+source code;
+raw benchmark output;
+distinction between working memory and result-vector memory.
+
+That distinction earns trust.
+
+The product positioning
+
+Primer should occupy this position:
+
+The small-working-set Rust sieve
+
+Not necessarily:
+
+the fastest prime crate;
+a complete number-theory library;
+a cryptographic-prime generator;
+an embedded miracle cure;
+a replacement for every feature in primal.
+
+Instead:
+
+Primer is for workloads that need to enumerate primes while keeping the sieve’s active memory tiny and cache-resident.
+
+That is precise, interesting, and defensible.
+
+Your own v0.2.0 story is good: 32 KiB segments, one reused buffer, zero dependencies, standalone compilation, and increasing benefit from segmentation at larger limits.
+
+What should be on primercrate.rs
+1. Hero section
+
+Keep it brutally clean:
+
+Primer
+
+A cache-aware, bit-packed prime sieve for Rust.
+
+32 KiB reusable sieve buffer.
+Zero dependencies.
+Competitive single-threaded performance.
+
+cargo add primer
+
+[Run Primer] [See the benchmarks] [Read the source]
+
+Below that, show three large proof figures:
+
+Metric	Reference result
+Sieve working memory	32 KiB
+Versus primal at 50M	187× smaller
+Dependencies	0
+
+Do not place sixteen badges above the explanation. Badges are garnish, not lunch.
+
+2. An interactive “Run Primer” demonstration
+
+This is the attention-grabber.
+
+Let visitors enter:
+
+Find all primes up to: [ 10,000,000 ]
+
+Then execute a WebAssembly build in the browser and display:
+
+664,579 primes found
+Elapsed: 18.4 ms
+Primer working buffer: 32 KiB
+Output storage: 5.1 MiB
+
+Browser timings must be labelled as illustrative rather than authoritative because WASM, browser scheduling, and machine differences introduce noise.
+
+The important part is that somebody can touch the algorithm within ten seconds.
+
+3. The benchmark laboratory
+
+This should be the core of the site, not an afterthought.
+
+Include selectors for:
+
+input limit;
+implementation;
+machine;
+CPU architecture;
+total memory versus sieve working memory;
+median, minimum, mean, maximum and standard deviation.
+
+Compare:
+
+Primer flat;
+Primer segmented;
+primes;
+primal;
+optionally the original C++ implementation.
+
+Every chart should include a Reproduce this benchmark button showing the exact command.
+
+For example:
+
+cargo run --release --bin primer-bench -- `
+  --limit 50000000 `
+  --iterations 25 `
+  --format json
+
+Also provide raw JSON and CSV downloads. A benchmark that cannot be downloaded is marketing; a benchmark that can be rerun is evidence.
+
+4. “How 32 KiB does the work”
+
+Use a simple animated technical visual:
+
+The full range is divided into segments.
+One 32 KiB bit-packed buffer represents the current segment.
+base primes mark composites;
+set bits are scanned using trailing_zeros;
+the buffer is cleared and reused for the next segment.
+
+This communicates the engineering achievement far better than several paragraphs of algorithmic terminology.
+
+Use the line:
+
+Primer does not hold the whole sieve in memory. It brings one cache-sized window to the CPU at a time.
+
+5. Honest performance page
+
+Include a summary like:
+
+Primer is optimised for small sieve residency rather than winning every latency benchmark. primal is faster in several current tests. Primer’s advantage is that its active sieve buffer remains fixed and cache-sized as the search limit grows.
+
+That sentence will win more respect than pretending every result is a victory.
+
+It also creates a much better community challenge:
+
+Can you close the remaining throughput gap without increasing the 32 KiB working set?
+
+That is catnip to performance engineers.
+
+6. Real usage documentation
+
+Your site needs runnable examples for:
+
+enumerate primes below a limit;
+stream or callback results without retaining the entire result vector;
+count primes without allocating a result vector;
+reuse a sieve object;
+select u32 or u64;
+configure segment size;
+no_std, but only once genuinely supported;
+benchmark integration.
+
+A count-only API and a callback/iterator API would strengthen the memory story enormously. Otherwise, the output vector eventually dominates total memory, as the existing release measurements already demonstrate.
+
+7. Trust and verification
+
+Show these prominently:
+
+property tests against known prime counts;
+cross-comparison with primal;
+tests for limits 0, 1, 2 and overflow boundaries;
+CI platforms;
+Miri result;
+sanitizer result where applicable;
+unsafe-code policy;
+minimum supported Rust version;
+licence;
+reproducible benchmark workflow.
+
+The site should practically dare people to inspect it.
+
+8. The development story
+
+You have a genuinely good article hiding here:
+
+From Five Lines of C++ to a 32 KiB Rust Sieve
+
+Cover:
+
+the original C++ implementation;
+why naïve translation fought the borrow checker;
+why explicit loops were retained;
+bit packing;
+odd-only representation;
+segmentation;
+cache behaviour;
+where Rust matched the generated machine instructions;
+where Primer still loses to primal;
+what you intend to try next.
+
+This Week in Rust currently accepts substantial Rust-specific project updates, particularly long-form material or tutorials, through its GitHub submission process.
+
+Before the launch
+
+There are several first-impression problems worth fixing before pointing an audience at the repo:
+
+The GitHub description currently contains “An improvemnt…”.
+The repository is marked as a public template.
+The README alternates among primer.rs, seg.rs and other file names.
+Some release links appear malformed.
+The project currently presents itself more like a collection of standalone source files than a conventional installable Cargo library.
+I could not find an exact public crates.io package corresponding to this Primer project.
+
+A proper Cargo package needs a clear Cargo.toml with description, homepage, repository, README and licensing metadata. Cargo’s official publication documentation specifically recommends those fields for discoverability.
+
+Publishing to crates.io also causes docs.rs to build and host the crate documentation automatically.
+
+Until this works:
+
+cargo add primer
+
+followed by:
+
+use primer::Sieve;
+
+fn main() {
+    let primes = Sieve::new(1_000_000).collect::<Vec<_>>();
+    println!("{}", primes.len());
+}
+
+—you are not ready for the big splash.
+
+The launch campaign
+Stage 1 — Evidence release
+
+Call it something like:
+
+Primer 0.3 — The Reproducible Benchmark Release
+
+Ship simultaneously:
+
+proper crates.io crate;
+docs.rs documentation;
+website;
+benchmark runner;
+raw benchmark datasets;
+three hardware profiles;
+article explaining the design;
+GitHub release;
+clean README.
+
+Use at least:
+
+your modern desktop;
+your ThinkPad P52;
+an ARM target or genuinely constrained device, provided Primer actually runs there.
+
+Do not mix results from different machines in one comparison.
+
+Stage 2 — Invite technical attack
+
+Open a GitHub discussion:
+
+Benchmark audit: find an unfair comparison or make Primer faster
+
+Provide issue templates for:
+
+benchmark reproduction;
+new architecture results;
+correctness failure;
+optimisation proposal;
+competitor implementation.
+
+Offer credit on the site’s benchmark-contributors page.
+
+This turns criticism into participation.
+
+Stage 3 — Public release
+
+Publish in this order:
+
+primercrate.rs
+crates.io and docs.rs
+technical article
+Rust Users Forum follow-up announcing the substantially revised release
+This Week in Rust submission
+Reddit /r/rust technical post
+Hacker News
+Bluesky and Mastodon benchmark graphic
+relevant embedded and scientific-computing communities only where the implementation genuinely fits
+
+For Hacker News, make the project immediately runnable. Show HN’s current guidelines explicitly favour projects people can try and discourage mere landing pages or signup pages.
+
+A suitable title:
+
+Show HN: Primer – a Rust prime sieve with a fixed 32 KiB working buffer
+
+Not:
+
+Revolutionary Rust crate beats all alternatives!!!
+
+One sounds interesting. The other sounds like it was written by a refrigerator salesman on amphetamines.
+
+The visual identity
+
+I’d use:
+
+near-black background;
+warm Rust-orange accent;
+cream/off-white text;
+bit-grid or segmented-memory motif;
+monospace numerals;
+very little decorative clutter.
+
+Logo concept:
+
+PRIMER
+[2][3][5][7][11][13]
+
+with composite-number cells disappearing or being struck out.
+
+Possible taglines:
+
+Tiny working set. Serious prime throughput.
+Keep the primes. Lose the memory overhead.
+A prime sieve built to live in cache.
+Prime generation, packed tighter.
+Thirty-two kibibytes. Millions of primes.
+The cache is the crate.
+
+My pick:
+
+A prime sieve built to live in cache.
+
+The most important strategic correction
+
+Your first forum announcement led people into debating broad embedded and cryptographic use cases, and the broken repository link damaged the first impression.
+
+The relaunch should therefore avoid trying to prove that everybody needs a prime sieve.
+
+You only need to prove:
+
+Primer is correct.
+Primer’s working-memory behaviour is unusual and valuable.
+Its performance trade-off is measured honestly.
+It is pleasant to install and use.
+The implementation teaches something interesting about Rust and cache-aware programming.
+
+That is enough for an excellent open-source launch.
+
+Recommended immediate order
+Correct primercrate.rs DNS/hosting.
+Convert Primer into a polished, conventional Cargo crate.
+Consolidate the API and file naming.
+Produce one canonical benchmark suite.
+Rewrite every performance claim from that dataset.
+Add count-only and streaming/callback APIs.
+Build the interactive benchmark site.
+Release as a substantial new version and relaunch it as an auditable performance project.
+
+The domain is the hook. The 32 KiB buffer is the story. Reproducibility is what makes people repeat it.
