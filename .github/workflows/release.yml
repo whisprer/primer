@@ -1,210 +1,69 @@
-name: Build Release Binaries
+name: Package GitHub release
 
 on:
   push:
     tags:
-      - 'v*'
-
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to build (e.g. v0.2.0)'
-        required: false
-        default: 'manual'
+      - "v*"
 
 permissions:
   contents: write
 
 env:
-  RUSTFLAGS: '-C target-cpu=native'
+  CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    name: ${{ matrix.target_name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            target_name: linux-x86_64
-            ext: ''
-
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            target_name: macos-x86_64
-            ext: ''
-
-          - os: macos-14
-            target: aarch64-apple-darwin
-            target_name: macos-aarch64
-            ext: ''
-
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            target_name: windows-x86_64
-            ext: '.exe'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Create output directory
-        shell: bash
-        run: mkdir -p dist
-
-      # ── Build primer (segmented sieve) ────────────────────
-      # Source: primer-crate/primer.rs
-      - name: Build primer
-        shell: bash
-        run: |
-          rustc -C opt-level=3 -C target-cpu=native \
-                --target ${{ matrix.target }} \
-                primer-crate/primer.rs -o dist/primer${{ matrix.ext }}
-
-      # ── Build og (flat sieve) ─────────────────────────────
-      # Source: src/rust/og/primes.rs
-      - name: Build og
-        shell: bash
-        run: |
-          rustc -C opt-level=3 -C target-cpu=native \
-                --target ${{ matrix.target }} \
-                src/rust/og/primes.rs -o dist/og${{ matrix.ext }}
-
-      # ── Test (native only) ────────────────────────────────
-      - name: Test primer
-        shell: bash
-        run: |
-          rustc --test primer-crate/primer.rs -o test_primer${{ matrix.ext }}
-          ./test_primer${{ matrix.ext }}
-
-      - name: Test og
-        shell: bash
-        run: |
-          rustc --test src/rust/og/primes.rs -o test_og${{ matrix.ext }}
-          ./test_og${{ matrix.ext }}
-
-      # ── Smoke test ────────────────────────────────────────
-      - name: Smoke test primer
-        shell: bash
-        run: ./dist/primer${{ matrix.ext }}
-
-      - name: Smoke test og
-        shell: bash
-        run: ./dist/og${{ matrix.ext }}
-
-      # ── Package ───────────────────────────────────────────
-      - name: Package binaries
-        shell: bash
-        run: |
-          cd dist
-          tar czf ../bit-packed-sieve-${{ matrix.target_name }}.tar.gz \
-            primer${{ matrix.ext }} og${{ matrix.ext }}
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bit-packed-sieve-${{ matrix.target_name }}
-          path: bit-packed-sieve-${{ matrix.target_name }}.tar.gz
-          retention-days: 5
-
-  # ── Build benchmark harness (Linux only, needs Cargo) ─────
-  build-bench:
-    name: benchmark-harness
+  release:
+    name: Verify and attach canonical crate
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install stable Rust
+        run: >-
+          rustup toolchain install stable --profile minimal
+          --component clippy --component rustfmt
 
-      # Source: src/rust/all-bench/cargo.toml + src/rust/all-bench/src/main.rs
-      - name: Build benchmark
-        shell: bash
-        working-directory: src/rust/all-bench
-        run: cargo build --release
-
-      - name: Package benchmark
+      - name: Verify tag matches Cargo version
         shell: bash
         run: |
           set -euo pipefail
+          package_version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
+          test -n "$package_version"
+          test "$GITHUB_REF_NAME" = "v$package_version"
 
-          mkdir -p dist
+      - name: Validate source
+        run: |
+          cargo +stable fmt --all -- --check
+          cargo +stable clippy --all-targets --locked -- -D warnings
+          cargo +stable test --all-targets --locked
 
-          # Cargo puts the built binary directly under target/release/<bin-name>
-          # (there is no target/release/src directory).
-          BIN=$(find src/rust/all-bench/target/release -maxdepth 1 -type f -executable \
-                  ! -name '*.d' ! -name '*.rlib' ! -name '*.a' ! -name '*.so' \
-                  ! -name '*.dylib' ! -name '*.dll' ! -name '*.pdb' \
-                  | head -n 1)
-          if [ -z "${BIN:-}" ]; then
-            echo "ERROR: could not locate benchmark binary under src/rust/all-bench/target/release" >&2
-            ls -la src/rust/all-bench/target/release || true
-            exit 1
-          fi
+      - name: Verify exact package contents
+        run: |
+          cargo +stable package --list --locked > "$RUNNER_TEMP/package-files.txt"
+          diff -u .github/package-files.txt "$RUNNER_TEMP/package-files.txt"
 
-          cp -v "$BIN" dist/all-bench
-          cp -v src/rust/all-bench/src/main.rs dist/
+      - name: Build crate and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo +stable package --locked
+          package_version="${GITHUB_REF_NAME#v}"
+          crate_name="primer-sieve-${package_version}.crate"
+          test -f "target/package/$crate_name"
+          (cd target/package && sha256sum "$crate_name" > "$crate_name.sha256")
 
-          # Handle Windows-authored repos where Cargo.toml may be cased oddly.
-          if [ -f src/rust/all-bench/Cargo.toml ]; then
-            cp -v src/rust/all-bench/Cargo.toml dist/Cargo.toml
-          elif [ -f src/rust/all-bench/cargo.toml ]; then
-            cp -v src/rust/all-bench/cargo.toml dist/Cargo.toml
-          else
-            echo "ERROR: Cargo.toml not found in src/rust/all-bench" >&2
-            ls -la src/rust/all-bench || true
-            exit 1
-          fi
-
-          (cd dist && tar czf ../all-bench-linux-x86_64.tar.gz all-bench main.rs Cargo.toml)
-
-      - name: Upload benchmark artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: all-bench-linux-x86_64
-          path: all-bench-linux-x86_64.tar.gz
-          retention-days: 5
-
-  # ── Create GitHub Release & attach all artifacts ──────────
-  release:
-    name: Create Release
-    needs: [build, build-bench]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: List artifacts
-        run: find artifacts -type f | sort
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-          files: |
-            artifacts/**/*.tar.gz
-            primer-crate/primer.rs
-            src/rust/og/primes.rs
-            src/cpp-og/primes.cpp
-            src/rust/all-bench/src/main.rs
-            src/rust/all-bench/[Cc]argo.toml
+      - name: Create GitHub release
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="${GITHUB_REF_NAME#v}"
+          crate_name="primer-sieve-${package_version}.crate"
+          gh release create "$GITHUB_REF_NAME" \
+            "target/package/$crate_name" \
+            "target/package/$crate_name.sha256" \
+            --verify-tag \
+            --generate-notes \
+            --title "Primer $GITHUB_REF_NAME"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}

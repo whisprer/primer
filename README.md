@@ -1,335 +1,128 @@
-<!-- repo-convergence:readme-header:start -->
-<!-- repo-convergence:language=FILL_ME -->
-# primer
+# Primer
 
-<p align="center">
-  <a href="https://github.com/whisprer/primer/releases">
-    <img src="https://img.shields.io/github/v/release/whisprer/primer?color=4CAF50&label=release" alt="Release Version">
-  </a>
-  <a href="https://github.com/whisprer/primer/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-Hybrid-green.svg" alt="License">
-  </a>
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg" alt="Platform">
-  <a href="https://github.com/whisprer/primer/actions/workflows/release.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/whisprer/primer/release.yml?label=build" alt="Build Status">
-  </a>
-</p>
+**A prime sieve built to live in cache.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-whisprer%2Fprimer-blue?logo=github&style=flat-square)](https://github.com/whisprer/primer)
-![Commits](https://img.shields.io/github/commit-activity/m/whisprer/primer?label=commits)
-![Last Commit](https://img.shields.io/github/last-commit/whisprer/primer)
-![Issues](https://img.shields.io/github/issues/whisprer/primer)
-[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](https://github.com/whisprer/primer)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey.svg)](https://www.microsoft.com/windows)
-[![Language](https://img.shields.io/badge/language-FILL_ME-blue.svg)](#)
-[![Status](https://img.shields.io/badge/Status-Alpha%20Release-orange?style=flat-square)](#)
+Primer is a zero-dependency Rust library and command-line program for
+enumerating every prime up to an inclusive `u64` limit. It uses an odd-only,
+bit-packed, segmented Sieve of Eratosthenes and reuses a 32 KiB segment.
 
-<p align="center">
-  <img src="/assets/primer-banner.png" width="850" alt="primer Banner">
-</p>
-<!-- repo-convergence:readme-header:end -->
+## Install
 
-# PRIMER - AN IMPROVED RUST PRIMES CRATE
+The crates.io package is named `primer-sieve`; its Rust library crate and CLI
+are both named `primer`.
 
-
-<p align="center">
-  <img src="https://img.shields.io/badge/64x-faster-blue" alt="Speed">
-  <img src="https://img.shields.io/badge/183x-smaller-green" alt="MemSize">
-  <img src="https://img.shields.io/badge/esp32-suited-yellow" alt="esp32">
-  <img src="https://img.shields.io/badge/created-12hrs-red" alt="Created in 12 hours">
-  <a href="https://github.com/whisprer/primer/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg"
-    <img src="https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg" alt="License">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/whisprer/primer">
-    <img src="assets/social_icon.png" alt="PRIMER" height="250"/ width="100%"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/whisprer/primer">
-    <img src="https://img.shields.io/github/stars/whisprer/primer?style=for-the-badge" alt="GitHub stars" />
-  </a>
-  <a href="https://github.com/whisprer/primer/issues">
-    <img src="https://img.shields.io/github/issues/whisprer/primer?style=for-the-badge" alt="GitHub issues" />
-  </a>
-  <a href="https://github.com/whisprer/primer/fork">
-    <img src="https://img.shields.io/github/forks/whisprer/primer?style=for-the-badge" alt="GitHub forks" />
-  </a>
-</p>
-
-# ** PRIMER **
-
-
-## A Bit-Packed Prime Sieve - Rust Port
-
-Ultra-efficient Sieve of Eratosthenes with 64x memory reduction, hardware intrinsics, and C++ performance.
-
-
-## Quick Start
-
-```bash
-# Compile with maximum optimizations
-rustc -C opt-level=3 -C target-cpu=native primer.rs
-
-# Run
-./primer
+```console
+cargo add primer-sieve
 ```
 
-**Expected output:**
-```
-Bit-Packed Sieve of Eratosthenes
-
-Generated 41538 primes up to 500000
-Time: ~1-3ms
-Memory: 4000 bytes (bit-packed)
-
-First 10 primes: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-Last 10 primes: [499883, 499897, 499903, 499927, 499943, 499957, 499969, 499973, 499979, 499999]
-
-✓ All assertions passed!
-```
-
-
-## What's Included
-
-| File | Description |
-|------|-------------|
-| `primer.rs` | Production-ready Rust implementation |
-| `PERFORMANCE_ANALYSIS.md` | Benchmarks, scaling, use cases |
-| `SIDE_BY_SIDE.md` | C++ → Rust translation guide |
-| `BORROW_CHECKER_FIX.md` | How we fixed the compile errors |
-
-
-## Key Features
-
-- **64x Memory Reduction**: 1 bit per odd number vs 8+ bytes naive
-- **Hardware Intrinsics**: `trailing_zeros()` compiles to `tzcnt` instruction
-- **Brian Kernighan Bit Iteration**: Skips zero bits entirely
-- **Odd-Only Sieving**: Hardcode 2, process only odd candidates
-- **Cache Friendly**: Sequential bit scanning
-
-
-## Performance vs Alternatives
-
-| Method | n=500k | Memory | Speed | Use Case |
-|--------|--------|--------|-------|----------|
-| **This (bit-packed)** | 41,538 primes | **4 KB** | **~2ms** | Bulk generation |
-| Rust `primes` crate | 41,538 primes | ~500 KB | ~15ms | Lazy iteration |
-| Rust `primal` crate | 41,538 primes | ~50 KB | ~3ms | Cache-friendly sieve |
-
-
-<p align="center">
-  <img src="assets/Screenshot.png" alt="Primer Benchmarker Screenshot" 
-width="900"/>
-</p>
-
-
-## Usage Examples
-
-### Basic Usage
 ```rust
 use primer::sieve_primes;
 
 fn main() {
-    let primes = sieve_primes(1000);
-    println!("Found {} primes", primes.len()); // 168
+    let primes = sieve_primes(1_000_000);
+
+    assert_eq!(primes.len(), 78_498);
+    assert_eq!(primes.last(), Some(&999_983));
 }
 ```
 
-### Distributed Network Integration
-```rust
-// Generate prime table at boot for distributed node IDs
-const PRIME_LIMIT: u64 = 10_000;
-static PRIMES: once_cell::sync::Lazy<Vec<u64>> = 
-    once_cell::sync::Lazy::new(|| sieve_primes(PRIME_LIMIT));
+To install the command-line program:
 
-// GPS coordinate hashing
-fn hash_location(lat: f64, lon: f64) -> u64 {
-    let idx = ((lat + lon).abs() as usize) % PRIMES.len();
-    PRIMES[idx]
-}
-
-// MQTT topic partitioning
-fn assign_topic(node_id: u64, n_topics: usize) -> usize {
-    let prime = PRIMES[n_topics];
-    (node_id % prime) as usize
-}
+```console
+cargo install primer-sieve
+primer 1_000_000
 ```
 
-### ESP32 Embedded Use
-```rust
-// Generate small prime table for memory-constrained device
-const ESP32_PRIMES: &[u64] = &{
-    const LIMIT: u64 = 1000;
-    // Generate at compile time with const_primes crate, or
-    // Generate once at startup (< 100µs, ~16 bytes)
-};
-```
+Before the first crates.io release, a Git dependency can be used instead:
 
-## Optimizations Explained
-
-### 1. Bit Packing
-```rust
-// Instead of: Vec<bool> (8+ bytes per number)
-// We use: Vec<u64> with 1 bit per odd number
-
-let mut b = vec![!0u64; ((n/2) >> 6) + 1];
-//                └─ all bits set to 1 (assume prime)
-//                        └─ divide by 64 (bits per u64)
-```
-
-### 2. Odd-Only Sieving
-```rust
-// Number `n` maps to bit index: (n - 1) / 2
-// Bit index `i` maps to number: (i * 2) + 1
-
-let h = n / 2; // Only process odd numbers
-let mut r = vec![2]; // Hardcode the only even prime
-```
-
-### 3. Hardware Intrinsics
-```rust
-// C++: __builtin_ctzll(w)
-// Rust: w.trailing_zeros()
-// Both compile to: tzcnt instruction on x86_64
-
-let tz = w.trailing_zeros(); // Find position of lowest set bit
-```
-
-### 4. Brian Kernighan Bit Trick
-```rust
-while w != 0 {
-    // Extract position of lowest set bit
-    let pos = w.trailing_zeros();
-    
-    // Clear lowest set bit (skip to next)
-    w &= w - 1;
-}
-// Iterates ONLY over set bits, not all 64!
-```
-
-
-## Testing
-
-```bash
-# Run built-in tests
-rustc --test primer.rs -o test_primer
-./test_primer
-```
-
-**Test coverage:**
-- Small prime sets (n=10, 20, 100)
-- Known prime counts (π(100)=25, π(1000)=168)
-- Edge cases (n=0, 1, 2, 3)
-- Compact vs standard implementation equality
-
-
-## Scaling Behavior
-
-| n | Primes | Memory | Time (est) |
-|---|--------|--------|------------|
-| 1K | 168 | 8 B | <1 µs |
-| 10K | 1,229 | 80 B | ~5 µs |
-| 100K | 9,592 | 800 B | ~50 µs |
-| 1M | 78,498 | 8 KB | ~1 ms |
-| 10M | 664,579 | 80 KB | ~15 ms |
-| 100M | 5.76M | 800 KB | ~200 ms |
-
-
-## Troubleshooting
-
-### Compile Error: "cannot borrow `b` as mutable..."
-This was fixed in the updated version. The issue was trying to use iterators while mutating the same array. See `BORROW_CHECKER_FIX.md` for details.
-
-### Warning: "unused variable `prime`"
-Also fixed. We removed the intermediate variable that wasn't being used.
-
-### Slow Performance
-Make sure you're compiling with optimizations:
-```bash
-rustc -C opt-level=3 -C target-cpu=native primer.rs
-```
-
-Without `-C opt-level=3`, performance will be 10-100x slower!
-
-## Learn More
-
-- **PERFORMANCE_ANALYSIS.md**: Deep dive into benchmarks and use cases
-- **SIDE_BY_SIDE.md**: Line-by-line C++ → Rust translation
-- **BORROW_CHECKER_FIX.md**: Understanding and fixing Rust borrow errors
-
-## Integration Patterns
-
-### As a Library
-```rust
-// In your Cargo.toml
+```toml
 [dependencies]
-# Copy primer.rs into your project as a module
-
-// In your code
-mod primer;
-use primer::sieve_primes;
+primer-sieve = { git = "https://github.com/whisprer/primer" }
 ```
 
-### Precomputed Table
+The code still imports the library as `primer`.
+
+## Library API
+
 ```rust
-// Generate once, use many times
-lazy_static! {
-    static ref PRIMES: Vec<u64> = sieve_primes(1_000_000);
-}
+use primer::{segmented_sieve, sieve_primes, SEGMENT_BYTES};
 
-fn is_prime_lookup(n: u64) -> bool {
-    PRIMES.binary_search(&n).is_ok()
-}
+assert_eq!(SEGMENT_BYTES, 32 * 1024);
+assert_eq!(sieve_primes(30), vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29]);
+assert_eq!(segmented_sieve(30), sieve_primes(30));
 ```
 
-### Iterator Wrapper
-```rust
-pub struct PrimeIter {
-    primes: Vec<u64>,
-    index: usize,
-}
+`sieve_primes(limit)` is the primary API. `segmented_sieve(limit)` is retained
+as a compatibility name for the historical standalone implementation.
 
-impl Iterator for PrimeIter {
-    type Item = u64;
-    
-    fn next(&mut self) -> Option<u64> {
-        if self.index < self.primes.len() {
-            let p = self.primes[self.index];
-            self.index += 1;
-            Some(p)
-        } else {
-            None
-        }
-    }
-}
+## Command-line usage
+
+```console
+primer [LIMIT]
 ```
+
+`LIMIT` defaults to `500000` and may contain commas or underscores:
+
+```console
+primer 50,000,000
+primer 50_000_000
+primer --help
+```
+
+## Memory model
+
+The **32 KiB** figure describes the reusable segment buffer, not total memory.
+A call also allocates:
+
+- bootstrap primes up to `sqrt(limit)`;
+- the returned `Vec<u64>`, containing every generated prime;
+- ordinary allocator and process overhead.
+
+Consequently, very large limits can exhaust memory even though the active sieve
+segment remains fixed at 32 KiB. Primer 0.3 is a bulk enumerator, not a
+constant-memory stream.
+
+## Design
+
+- one bit per odd candidate in the active segment;
+- even candidates omitted after handling `2`;
+- fixed, reusable 32 KiB segment;
+- set-bit scans using `u64::trailing_zeros`;
+- set-bit iteration using `word &= word - 1`;
+- zero runtime dependencies;
+- no `unsafe` code.
+
+The compiler selects the actual machine instructions according to the target
+and enabled CPU features. The release automation does not force
+`target-cpu=native`; consumers remain in control of target-specific tuning.
+
+## Scope and safety
+
+Primer is not a primality-proof system, factorisation toolkit, or
+cryptographically secure prime generator. Do not use its deterministic output
+as secret key material.
+
+The minimum supported Rust version is **1.70.0**.
+
+## Verify
+
+```console
+cargo fmt --all -- --check
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --all-targets --locked
+cargo doc --no-deps
+cargo package --locked
+```
+
+Tests cover edge cases, known prime counts, segment crossings, integer square
+root boundaries, the public compatibility API, and CLI behaviour.
+
+## Links
+
+- Project site: <https://primercrate.rs/>
+- Source and issues: <https://github.com/whisprer/primer>
+- API documentation: <https://docs.rs/primer-sieve>
 
 ## License
 
-Same as original C++ implementation - Hybrid MIT & CC0 - use Freely!
-
-
-## Credits
-
-- Original C++ bit-packed implementation whisprer
-- Ported to Rust with borrow checker compliance whisprer & ClaudeOpus4.6
-- Optimized for distributed timing networks
-- Inspired by the insane single midnedness of RTC.
-- RIP CLaude/Gemini/ChatGPT. Long Live ClaudeOpus4.6/Gemini3.0Pro/ChatGPT5.2!
-
----
-
-**Perfect for:**
-- GPS coordinate hashing
-- Rubidium frequency calibration tables  
-- MQTT topic distribution
-- ESP32/embedded prime generation
-- Any scenario where memory efficiency matters
-
-
-**Compile it. Run it. Ship it.**
+Primer is distributed under the terms in [`LICENSE.md`](LICENSE.md).

@@ -1,79 +1,71 @@
-# Contributing
+# Contributing to Primer
 
-Thanks for your interest in improving **PRIMER** the bit-packed-sieve!
+Thank you for helping improve Primer.
 
+## Development setup
 
-## Code style
-- Follow Rust 2021 edition conventions.
-- Run `cargo fmt` before commits (if using Cargo), or ensure consistent formatting for single-file builds.
-- Resolve all warnings: `rustc -C opt-level=3 seg.rs` should produce zero warnings.
-- Keep logic minimal — this project is deliberately dependency-free and single-file where possible.
-- Prefer explicit loops over iterator chains when mutation is involved (see `BORROW_CHECKER_FIX.md`).
+Primer supports Rust 1.70.0 and current stable Rust. Install both with rustup:
 
-
-## Development workflow
-1. Fork the repository.
-2. Create a feature branch:
-```bash
-git checkout -b feature/your-feature
+```console
+rustup toolchain install stable --component clippy --component rustfmt
+rustup toolchain install 1.70.0
 ```
 
-3. Commit changes with clear messages (examples):
-```
-feat: add wheel-30 factorisation to segmented sieve
-fix: handle n=2 edge case in isqrt
-perf: reduce collection phase allocations
-docs: add ESP32 integration example
-```
+Clone the repository and create a focused branch:
 
-4. Push and open a Pull Request against `main`.
-
-
-## Building & testing
-
-### Standalone (no Cargo required)
-```bash
-# Compile with full optimisations
-rustc -C opt-level=3 -C target-cpu=native seg.rs -o seg
-
-# Run
-./seg
-
-# Run tests
-rustc --test seg.rs -o test_seg && ./test_seg
+```console
+git clone https://github.com/whisprer/primer.git
+cd primer
+git switch -c feature/short-description
 ```
 
-### With Cargo (for benchmarks)
-```bash
-cargo build --release
-cargo run --release
-cargo test
+## Required checks
+
+Run these before opening a pull request:
+
+```console
+cargo +stable fmt --all -- --check
+cargo +stable clippy --all-targets --locked -- -D warnings
+cargo +stable test --all-targets --locked
+cargo +stable doc --no-deps
+cargo +1.70.0 test --all-targets --locked
+cargo +stable package --locked
 ```
 
-### Manual verification
-- Cross-check prime counts against known values: π(100) = 25, π(1,000) = 168, π(10,000) = 1,229, π(500,000) = 41,538.
-- Verify the `test_matches_flat_sieve` test passes — this confirms segmented and flat implementations produce identical output.
-- When changing sieve logic, run the benchmark harness to confirm no performance regression.
+Keep the package-content gate exact:
 
+```console
+cargo +stable package --list --locked
+```
 
-## Performance contributions
-If you're submitting a performance improvement:
-- Include before/after benchmark numbers (25+ iterations, release mode, `target-cpu=native`).
-- Specify the hardware and `rustc --version` used.
-- Ensure all existing tests still pass.
-- Keep the single-file, zero-dependency constraint unless there's a compelling reason to break it.
+Only canonical package files belong in the `.crate` archive. Historical source,
+benchmark output, executables, website assets, and development notes belong in
+the private development archive, not this repository.
 
+## Changes to the sieve
+
+- Preserve correct inclusive-limit behaviour for `0..=u64::MAX` wherever the
+  requested result can be allocated.
+- Add or update tests before changing index arithmetic.
+- Do not introduce `unsafe` code.
+- Keep runtime dependencies at zero unless a measured, documented benefit
+  justifies changing that contract.
+- Distinguish segment-buffer memory from bootstrap, result-vector, allocator,
+  and process memory.
+
+Performance pull requests should include reproducible commands, at least 25
+samples per case, compiler version, target flags, operating system, and hardware
+details. Do not publish comparisons gathered with different workloads or
+measurement definitions.
 
 ## Documentation
-If you add or change functionality, please update:
-- `README.md` — usage examples and performance tables.
-- `CHANGELOG.md` — under an `[Unreleased]` section.
-- Inline doc comments (`///`) on public functions.
-- `--help` output if a CLI interface is added.
 
+Update the relevant public surface when behaviour changes:
 
-## Communication
-Open a GitHub Issue for:
-- Bug reports (include `n`, expected vs actual prime count, `rustc --version`)
-- Feature requests
-- Questions / clarifications
+- `README.md` for user-facing behaviour;
+- `CHANGELOG.md` under `[Unreleased]`;
+- Rustdoc on every changed public item;
+- `primer --help` when CLI behaviour changes.
+
+Use a clear commit message such as `fix: handle segment boundary` or
+`docs: clarify result-vector memory`.

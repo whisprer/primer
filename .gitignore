@@ -1,0 +1,21 @@
+# Cargo and rustc output
+/target/
+*.pdb
+
+# Editor state
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Profiling output
+perf.data
+perf.data.old
+flamegraph.svg
+cachegrind.out.*
+callgrind.out.*
