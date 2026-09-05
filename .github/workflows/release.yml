@@ -53,17 +53,24 @@ jobs:
           test -f "target/package/$crate_name"
           (cd target/package && sha256sum "$crate_name" > "$crate_name.sha256")
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         shell: bash
         run: |
           set -euo pipefail
           package_version="${GITHUB_REF_NAME#v}"
           crate_name="primer-sieve-${package_version}.crate"
-          gh release create "$GITHUB_REF_NAME" \
-            "target/package/$crate_name" \
-            "target/package/$crate_name.sha256" \
-            --verify-tag \
-            --generate-notes \
-            --title "Primer $GITHUB_REF_NAME"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" \
+              "target/package/$crate_name" \
+              "target/package/$crate_name.sha256" \
+              --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "target/package/$crate_name" \
+              "target/package/$crate_name.sha256" \
+              --verify-tag \
+              --generate-notes \
+              --title "Primer $GITHUB_REF_NAME"
+          fi
         env:
           GH_TOKEN: ${{ github.token }}
