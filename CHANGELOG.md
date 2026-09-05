@@ -1,63 +1,48 @@
 # Changelog
 
-All notable changes to this project are documented here.
-
-The format is inspired by Keep a Changelog, and the project follows semantic
+All notable changes to Primer are documented here. The project follows semantic
 versioning where practical.
 
-## [0.3.0] - 2026-07-11
+## [Unreleased]
+
+## [0.3.0] - 2026-09-04
 
 ### Added
 
-- Conventional root Cargo package for the `primer` library and CLI.
-- Canonical public `sieve_primes(limit)` API.
-- Compatibility alias for the historical `segmented_sieve(limit)` API.
-- Root-level unit tests, public integration tests, and a runnable example.
-- Cross-platform GitHub Actions validation.
-- Package metadata for `primercrate.rs`, GitHub, docs.rs, and crates.io.
-- Explicit documentation of Primer's memory model and scope.
+- Conventional Cargo package `primer-sieve` with library crate and CLI named
+  `primer`.
+- Public `sieve_primes(limit)` API.
+- Compatibility `segmented_sieve(limit)` API.
+- Unit, integration, CLI, documentation, and example coverage.
+- CI on Linux, Windows, and macOS, plus a Rust 1.70.0 MSRV check.
+- Tag-driven GitHub Release packaging of the canonical `.crate` archive and
+  its SHA-256 checksum.
 
 ### Changed
 
-- Established `src/lib.rs` as the canonical implementation.
-- Moved the demonstration program into `src/bin/primer.rs`.
-- Corrected half-index arithmetic to remain in `u64` until local segment
-  indexing is required.
-- Replaced ambiguous total-memory wording with the precise 32 KiB reusable
-  segment-buffer claim.
-- Replaced the legacy README with Cargo-first installation and usage guidance.
-- Renamed the repository's `gitignore` file to `.gitignore`.
+- Established `src/lib.rs` as the sole canonical implementation.
+- Established `src/bin/primer.rs` as the sole canonical CLI.
+- Corrected half-index arithmetic to stay in `u64` until local segment indexing
+  is required.
+- Replaced ambiguous memory claims with the precise 32 KiB reusable segment
+  buffer claim.
+- Restricted crates.io contents to the files needed to build, test, document,
+  and license the package.
+- Removed historical implementations, benchmark experiments, compiled output,
+  website material, and conversation notes from the public repository head.
 
-### Preserved
+### Security
 
-- The segmented algorithm and its 32 KiB segment geometry.
-- Historical standalone implementations and benchmark experiments for
-  provenance.
-- The zero-dependency and no-`unsafe` design.
-
-## [not numbered] - 2026-02-14
-
-### Changed
-
-- Name finalized to `Primer`.
+- Forbid `unsafe` code in the canonical library.
+- Build release artifacts without host-specific `target-cpu=native` flags.
 
 ## [0.2.0] - 2026-02-14
 
 ### Added
 
-- Segmented sieve implementation (`seg.rs`) with a reusable 32 KiB segment.
-- Benchmark harness comparing flat sieve, segmented sieve, `primes`, and
-  `primal`.
-- Development write-up covering the C++ origin, Rust port, and segmentation.
-- Hacker News submission draft.
-
-### Changed
-
-- Flat sieve pre-allocates its result vector using a prime-counting upper bound.
-- Replaced a direct floating-point square-root cast with a corrected,
-  overflow-safe integer square root.
-- Hoisted inner-loop step computation.
-- Added early termination in the collection phase.
+- Segmented sieve implementation with a reusable 32 KiB segment.
+- Benchmark harness comparing flat, segmented, `primes`, and `primal` sieves.
+- Development notes covering the C++ origin, Rust port, and segmentation.
 
 ### Fixed
 
@@ -68,17 +53,6 @@ versioning where practical.
 
 ### Added
 
-- Bit-packed Sieve of Eratosthenes Rust port.
-- One-bit-per-odd-candidate representation.
+- Initial odd-only, bit-packed Rust port of the Sieve of Eratosthenes.
 - Trailing-zero scans and Brian Kernighan set-bit iteration.
-- Odd-only sieving with `2` handled separately.
-- Borrow-checker fix guide.
-- Initial usage, performance, and integration documentation.
 - Edge-case and known-count tests.
-
-## [0.0.1] - 2025
-
-### Added
-
-- Original compact C++ bit-packed sieve implementation.
-- Iterative optimisation work leading to the Rust port.

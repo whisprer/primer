@@ -1,0 +1,12 @@
+.cargo_vcs_info.json
+CHANGELOG.md
+Cargo.lock
+Cargo.toml
+Cargo.toml.orig
+LICENSE.md
+README.md
+examples/basic.rs
+src/bin/primer.rs
+src/lib.rs
+tests/cli.rs
+tests/public_api.rs

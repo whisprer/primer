@@ -1,20 +1,10 @@
-# Cargo and rustc build artifacts
+# Cargo and rustc output
 /target/
-Cargo.lock
 *.pdb
 
-# Historical standalone binaries
-/og/
-/og-bench/
-/primer-[seg]-bench/
-
-# Temporary Primer website deployment bundle
-/primercrate-placeholder/
-/primercrate-placeholder.zip
-
-# Editor and IDE state
-.vscode/
-.idea/
+# Editor state
+/.idea/
+/.vscode/
 *.swp
 *.swo
 *~
@@ -23,10 +13,7 @@ Cargo.lock
 .DS_Store
 Thumbs.db
 
-# Private conversation notes
-BORROW_CHECKER_CONVO.md
-
-# Profiling and benchmark artifacts
+# Profiling output
 perf.data
 perf.data.old
 flamegraph.svg

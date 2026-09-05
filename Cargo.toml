@@ -10,8 +10,9 @@ documentation = "https://docs.rs/primer-sieve"
 readme = "README.md"
 license-file = "LICENSE.md"
 keywords = ["prime", "sieve", "eratosthenes", "segmented", "bit-packed"]
-categories = ["algorithms", "mathematics"]
+categories = ["algorithms", "mathematics", "command-line-utilities"]
 publish = ["crates-io"]
+default-run = "primer"
 include = [
     "/Cargo.toml",
     "/README.md",
@@ -20,6 +21,7 @@ include = [
     "/src/lib.rs",
     "/src/bin/primer.rs",
     "/examples/basic.rs",
+    "/tests/cli.rs",
     "/tests/public_api.rs",
 ]
 
@@ -30,8 +32,3 @@ path = "src/lib.rs"
 [[bin]]
 name = "primer"
 path = "src/bin/primer.rs"
-
-[dependencies]
-
-[package.metadata.docs.rs]
-rustdoc-args = ["--cfg", "docsrs"]

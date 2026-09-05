@@ -1,51 +1,27 @@
-# Code of Conduct
+# Code of conduct
 
-## Our Standards
+Primer's project spaces are for constructive technical collaboration.
 
-This project is about benchmarking algorithms, not people. We expect:
+## Expected behaviour
 
-- **Technical focus** — Discuss code, not contributors
-- **Constructive criticism** — "This could be faster because..." not "This is bad"
-- **Respectful disagreement** — Multiple valid approaches exist
-- **Inclusive language** — Accessible to all skill levels
+- Discuss code and evidence, not personal characteristics.
+- Critique precisely and respectfully.
+- Make benchmark methods and limitations reproducible.
+- Correct mistakes openly.
+- Help contributors participate without harassment or intimidation.
 
-## LLM Fairness
+## Unacceptable behaviour
 
-When comparing LLM-generated code:
-
-- Present results objectively
-- Acknowledge that LLM outputs vary by prompt and context
-- Avoid anthropomorphizing or disparaging any AI system
-- Document the exact prompts used for reproducibility
-
-## Unacceptable Behavior
-
-- Personal attacks or insults
-- Discrimination of any kind
-- Deliberately misleading benchmarks
-- Claiming others' work as your own
+- Harassment, threats, discrimination, or personal attacks.
+- Publishing another person's private information.
+- Deliberately misleading benchmark or security claims.
+- Plagiarism or knowingly false attribution.
 
 ## Enforcement
 
-Violations may result in:
+Report conduct concerns privately to `conduct@whispr.dev`. Maintainers may edit
+or remove contributions and may temporarily or permanently restrict
+participation when necessary to protect the project community.
 
-1. Comment removal
-2. PR rejection
-3. Temporary or permanent ban
-
-## Scope
-
-This applies to:
-
-- GitHub issues and pull requests
-- Code comments
-- Documentation
-- Related discussions
-
-## Contact
-
-Report concerns to: conduct@whispr.dev
-
----
-
-*Adapted from Contributor Covenant v2.1*
+This code applies to repository issues, pull requests, discussions, and other
+spaces where someone represents Primer.

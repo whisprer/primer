@@ -1,39 +1,33 @@
-# Security Policy
-
+# Security policy
 
 ## Supported versions
-| Version | Supported |
-|--------:|:---------:|
-| 0.2.x   | ✅ Active |
-| 0.1.x   | ⚠️ Fixes only |
 
+| Version | Status |
+| --- | --- |
+| 0.3.x | Supported |
+| 0.2.x and earlier | Unsupported |
 
 ## Reporting a vulnerability
-If you discover a potential vulnerability:
-1. **Do not** open a public GitHub issue immediately.
-2. Use GitHub's **"Report a vulnerability"** feature if enabled, or contact the maintainer(s) directly at security@whispr.dev.
 
-Response target: within **72 hours**.
+Please do not open a public issue for a suspected vulnerability. Use GitHub's
+private vulnerability-reporting feature when available, or email
+`security@whispr.dev`.
 
+Include the affected version, platform, input, expected result, observed result,
+and a minimal reproducer. Never include live credentials or unrelated private
+data.
 
-## Security scope
-This repository is a local CLI tool / library that generates prime number tables in memory and optionally prints them to stdout.
+## Security properties and limits
 
-Security concerns are primarily:
-- **Integer overflow in `isqrt()`** — mitigated via `checked_mul` for all u64 values including `u64::MAX`.
-- **Denial-of-service via large `n`** — very large values of `n` will consume proportional memory for the result vector (≈ 8 bytes × π(n)). The sieve working memory is capped at 32 KB (segmented) regardless of `n`.
-- **Index out-of-bounds in bit array access** — the sieve uses computed indices into `Vec<u64>`; bounds are enforced by Rust's runtime checks in debug mode and verified by test coverage.
-- **`unsafe` usage** — this project uses zero `unsafe` blocks. All memory safety is enforced by the compiler.
+- The canonical library forbids `unsafe` code.
+- Arithmetic used for square-root correction and segment indexing avoids
+  overflowing multiplication at `u64` boundaries.
+- Rust performs bounds checks on vector access.
+- The project has no runtime dependencies.
+- Input limits are controlled by the caller; generating and retaining every
+  prime below a huge limit can exhaust memory or consume substantial CPU time.
+- Allocation failure may panic or abort according to the build and allocator.
+- Primer is deterministic and is not a cryptographically secure prime
+  generator. Do not use its output as secret key material.
 
-
-## Known limitations
-- The project does not attempt to provide sandboxing guarantees; it runs with the permissions of the user executing it.
-- No cryptographic guarantees — this is a deterministic sieve, not a cryptographically secure prime generator. Do not use for key generation.
-- The `f64` seed in `isqrt()` has precision limits above 2^52, corrected by Newton iteration. This is tested but worth noting for adversarial inputs.
-
-
-## Verification
-Users are encouraged to:
-- Run the built-in test suite: `rustc --test seg.rs -o test_seg && ./test_seg`
-- Cross-check prime counts against known values (OEIS A000720).
-- Inspect, audit, and rebuild from source before use in sensitive environments.
+Primer runs with the invoking user's permissions and does not provide a sandbox.

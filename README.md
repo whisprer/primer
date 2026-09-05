@@ -2,43 +2,18 @@
 
 **A prime sieve built to live in cache.**
 
-Primer is a zero-dependency Rust library and command-line program for enumerating
-prime numbers with an odd-only, bit-packed, segmented Sieve of Eratosthenes.
+Primer is a zero-dependency Rust library and command-line program for
+enumerating every prime up to an inclusive `u64` limit. It uses an odd-only,
+bit-packed, segmented Sieve of Eratosthenes and reuses a 32 KiB segment.
 
-Its reusable sieve segment is 32 KiB. That segment is cleared and reused as
-Primer advances through the requested range, keeping the hottest part of the
-algorithm compact and cache-friendly.
+## Install
 
-## Important memory distinction
-
-**32 KiB is the reusable segment buffer, not total process memory.**
-
-A call also uses memory for:
-
-- bootstrap primes up to `sqrt(limit)`;
-- the returned `Vec<u64>`, which stores every generated prime;
-- allocator metadata and normal process overhead.
-
-Primer 0.3 establishes a conventional Cargo library interface around the
-existing segmented algorithm. Streaming and count-only interfaces can be added
-separately without obscuring this packaging release.
-
-## Installation
-
-After the package is published on crates.io:
+The crates.io package is named `primer-sieve`; its Rust library crate and CLI
+are both named `primer`.
 
 ```console
-cargo add primer-sieve --rename primer
+cargo add primer-sieve
 ```
-
-Until then, use the Git repository:
-
-```toml
-[dependencies]
-primer = { package = "primer-sieve", git = "https://github.com/whisprer/primer" }
-```
-
-## Library usage
 
 ```rust
 use primer::sieve_primes;
@@ -51,90 +26,103 @@ fn main() {
 }
 ```
 
-The historical `segmented_sieve(limit)` name remains available as a compatibility
-alias. New code should use `sieve_primes(limit)`.
-
-## Command-line usage
-
-Run the included CLI without installing it:
+To install the command-line program:
 
 ```console
-cargo run --release -- 50_000_000
-```
-
-Or install the binary from the repository:
-
-```console
-cargo install --git https://github.com/whisprer/primer
+cargo install primer-sieve
 primer 1_000_000
 ```
 
-The limit accepts plain digits, underscores, or commas.
+Before the first crates.io release, a Git dependency can be used instead:
 
-## Why Primer is compact
+```toml
+[dependencies]
+primer-sieve = { git = "https://github.com/whisprer/primer" }
+```
 
-Primer combines:
+The code still imports the library as `primer`.
+
+## Library API
+
+```rust
+use primer::{segmented_sieve, sieve_primes, SEGMENT_BYTES};
+
+assert_eq!(SEGMENT_BYTES, 32 * 1024);
+assert_eq!(sieve_primes(30), vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29]);
+assert_eq!(segmented_sieve(30), sieve_primes(30));
+```
+
+`sieve_primes(limit)` is the primary API. `segmented_sieve(limit)` is retained
+as a compatibility name for the historical standalone implementation.
+
+## Command-line usage
+
+```console
+primer [LIMIT]
+```
+
+`LIMIT` defaults to `500000` and may contain commas or underscores:
+
+```console
+primer 50,000,000
+primer 50_000_000
+primer --help
+```
+
+## Memory model
+
+The **32 KiB** figure describes the reusable segment buffer, not total memory.
+A call also allocates:
+
+- bootstrap primes up to `sqrt(limit)`;
+- the returned `Vec<u64>`, containing every generated prime;
+- ordinary allocator and process overhead.
+
+Consequently, very large limits can exhaust memory even though the active sieve
+segment remains fixed at 32 KiB. Primer 0.3 is a bulk enumerator, not a
+constant-memory stream.
+
+## Design
 
 - one bit per odd candidate in the active segment;
-- omission of even candidates after handling `2`;
-- a reusable 32 KiB segment;
-- target-appropriate trailing-zero scans through Rust's `trailing_zeros`;
-- set-bit iteration using the Brian Kernighan bit-clearing technique;
-- no runtime dependencies;
+- even candidates omitted after handling `2`;
+- fixed, reusable 32 KiB segment;
+- set-bit scans using `u64::trailing_zeros`;
+- set-bit iteration using `word &= word - 1`;
+- zero runtime dependencies;
 - no `unsafe` code.
 
-The compiler decides the exact machine instruction used for bit scans according
-to the compilation target and enabled CPU features.
+The compiler selects the actual machine instructions according to the target
+and enabled CPU features. The release automation does not force
+`target-cpu=native`; consumers remain in control of target-specific tuning.
 
-## Scope
+## Scope and safety
 
-Primer currently focuses on **bulk prime enumeration**. It is not yet intended
-as a complete number-theory toolkit, a cryptographic prime generator, a
-factorisation library, or a constant-memory stream.
+Primer is not a primality-proof system, factorisation toolkit, or
+cryptographically secure prime generator. Do not use its deterministic output
+as secret key material.
 
-## Verification
+The minimum supported Rust version is **1.70.0**.
+
+## Verify
 
 ```console
 cargo fmt --all -- --check
-cargo check --all-targets
-cargo test --all-targets
-cargo clippy --all-targets -- -D warnings
-cargo package --allow-dirty
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --all-targets --locked
+cargo doc --no-deps
+cargo package --locked
 ```
 
-Tests cover edge cases, known prime-counting values, segment boundaries, the
-historical API alias, integer-square-root boundaries, and cross-checks against
-an independent reference sieve.
-
-## Repository layout
-
-The root `src/lib.rs` is the canonical crate implementation.
-
-Historical standalone implementations and benchmark experiments remain under
-`src/rust/`, `src/final-package/`, and `primer-crate/` for provenance until a
-later archive-only cleanup. They are not included in the crates.io package.
-
-## Benchmarks
-
-The repository contains historical benchmark programs, but their results use
-different harnesses and measurement definitions. Primer will publish one
-canonical, reproducible benchmark suite before making headline comparisons.
-
-That suite will distinguish:
-
-- reusable sieve-buffer memory;
-- bootstrap working memory;
-- returned-result storage;
-- total observed process memory;
-- latency and throughput on clearly identified hardware.
+Tests cover edge cases, known prime counts, segment crossings, integer square
+root boundaries, the public compatibility API, and CLI behaviour.
 
 ## Links
 
 - Project site: <https://primercrate.rs/>
-- Source: <https://github.com/whisprer/primer>
-- Issues: <https://github.com/whisprer/primer/issues>
+- Source and issues: <https://github.com/whisprer/primer>
+- API documentation: <https://docs.rs/primer-sieve>
 
 ## License
 
-Primer uses the project license in [`LICENSE.md`](LICENSE.md).
-
+Primer is distributed under the terms in [`LICENSE.md`](LICENSE.md).
