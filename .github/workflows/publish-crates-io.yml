@@ -1,0 +1,54 @@
+name: Publish Primer 0.3.0 to crates.io
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crates-io-primer-sieve-0.3.0
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    name: Publish primer-sieve 0.3.0
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v0.3.0
+          fetch-depth: 0
+
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Verify exact release source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "5d50e24b1a36241fe62dd31ce38ed1d03ba4667a"
+          test "$(git rev-parse 'v0.3.0^{commit}')" = "$(git rev-parse HEAD)"
+          package_name="$(sed -n 's/^name = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
+          package_version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
+          test "$package_name" = "primer-sieve"
+          test "$package_version" = "0.3.0"
+
+      - name: Validate package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo +stable test --all-targets --locked
+          cargo +stable package --list --locked > "$RUNNER_TEMP/package-files.txt"
+          diff -u .github/package-files.txt "$RUNNER_TEMP/package-files.txt"
+          cargo +stable package --locked
+
+      - name: Publish to crates.io
+        run: cargo +stable publish --package primer-sieve --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
